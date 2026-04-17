@@ -125,7 +125,7 @@ export default function Painel() {
             className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
           >
             <div
-              className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`}
+              className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${accent}`}
             />
 
             <div className="p-5 pt-6">
@@ -143,7 +143,7 @@ export default function Painel() {
                 </div>
 
                 <div
-                  className={`rounded-xl bg-gradient-to-br p-3 text-white ${accent}`}
+                  className={`rounded-xl bg-linear-to-br p-3 text-white ${accent}`}
                 >
                   <Icon className="size-5" strokeWidth={2} />
                 </div>
@@ -170,7 +170,7 @@ export default function Painel() {
             {[40, 65, 45, 80, 55, 70, 50].map((h, i) => (
               <div
                 key={i}
-                className="flex-1 rounded-t-md bg-gradient-to-t from-sky-600/40 to-sky-400/80"
+                className="flex-1 rounded-t-md bg-linear-to-t from-sky-600/40 to-sky-400/80"
                 style={{ height: `${h}%` }}
               />
             ))}

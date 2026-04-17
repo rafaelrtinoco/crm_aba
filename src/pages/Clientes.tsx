@@ -258,7 +258,7 @@ export default function Clientes() {
       title="Clientes"
       subtitle="Cadastre, filtre e gerencie sua base com um layout mais limpo."
       actions={
-        <div className="w-full sm:w-[26rem]">
+        <div className="w-full sm:w-104">
           <Input
             type="search"
             label="Buscar"
@@ -434,10 +434,10 @@ export default function Clientes() {
           </div>
           <div className="p-4 sm:p-6">
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50/30">
-              <table className="min-w-[960px] w-full text-sm border-collapse">
+              <table className="min-w-240 w-full text-sm border-collapse">
                 <thead>
                   <tr className="bg-slate-100/95 text-left text-slate-700 border-b border-slate-200">
-                    <th className="px-3 py-2.5 font-semibold whitespace-nowrap min-w-[140px]">
+                    <th className="px-3 py-2.5 font-semibold whitespace-nowrap min-w-35">
                       Nome
                     </th>
                     <th className="px-3 py-2.5 font-semibold whitespace-nowrap">
@@ -449,7 +449,7 @@ export default function Clientes() {
                     <th className="px-3 py-2.5 font-semibold whitespace-nowrap">
                       Ramo
                     </th>
-                    <th className="px-3 py-2.5 font-semibold whitespace-nowrap min-w-[120px]">
+                    <th className="px-3 py-2.5 font-semibold whitespace-nowrap min-w-30">
                       Seguradora
                     </th>
                     <th className="px-3 py-2.5 font-semibold whitespace-nowrap">
@@ -482,7 +482,7 @@ export default function Clientes() {
                         key={c.id}
                         className="border-b border-slate-100 bg-white hover:bg-sky-50/40 transition-colors"
                       >
-                        <td className="px-3 py-2.5 font-medium text-slate-900 max-w-[220px]">
+                        <td className="px-3 py-2.5 font-medium text-slate-900 max-w-55">
                           <span className="block truncate" title={c.nome}>
                             {c.nome}
                           </span>
@@ -496,7 +496,7 @@ export default function Clientes() {
                         <td className="px-3 py-2.5 text-slate-600 whitespace-nowrap">
                           {c.ramo}
                         </td>
-                        <td className="px-3 py-2.5 text-slate-600 max-w-[180px]">
+                        <td className="px-3 py-2.5 text-slate-600 max-w-45">
                           <span className="block truncate" title={c.seguradora}>
                             {c.seguradora}
                           </span>

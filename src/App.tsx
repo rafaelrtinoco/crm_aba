@@ -30,7 +30,7 @@ function App() {
       <div className="flex min-w-0 flex-1 flex-col">
         <header
           translate="no"
-          className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200/90 bg-white/95 px-4 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80"
+          className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200/90 bg-white/95 px-4 shadow-sm backdrop-blur supports-backdrop-filter:bg-white/80"
         >
           <button
             type="button"
@@ -42,7 +42,7 @@ function App() {
             <Menu className="size-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-white font-medium uppercase tracking-wider text-slate-500">
+            <p className="text-xs text-white font-medium uppercase tracking-wider">
               ABA Seguros
             </p>
             <h2 className="truncate text-lg font-semibold text-slate-900">

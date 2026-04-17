@@ -12,8 +12,7 @@ export default {
   theme: {
     extend: {
       // 2. Registramos suas cores aqui para não precisar de [ ] no HTML
-      colors: {
-        'teste-erro': '#ff0000', // Exemplo de cor personalizada
+      colors: {       
         brand: {
           dark: "#0b1220",      // A cor do seu sidebar/bg
           primary: "#1e3a8a",   // blue-primary do seu CSS
