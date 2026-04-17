@@ -82,7 +82,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 ml-1">E-mail</label>
               <div className="relative group">
-                <User className="absolute left-3 top-2.5 size-[18px] text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                <User className="absolute left-3 top-2.5 size-4.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                 <input
                   type="email"
                   className="input pl-10"
@@ -100,7 +100,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 <a href="#" className="text-xs font-medium text-sky-600 hover:text-blue-700">Esqueci-me da senha</a>
               </div>
               <div className="relative group">
-                <Lock className="absolute left-3 top-2.5 size-[18px] text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                <Lock className="absolute left-3 top-2.5 size-4.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                 <input
                   type="password"
                   className="input pl-10"
