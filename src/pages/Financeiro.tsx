@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileSpreadsheet, MessageCircle, Upload } from "lucide-react";
 import { formatDocumento } from "../lib/documentoFormat";
+import PageShell from "../components/PageShell";
 import {
   BOLETOS_STORAGE_KEY,
   BOLETO_TEMPLATE_CSV,
@@ -334,11 +335,10 @@ export default function Financeiro() {
   });
 
   return (
-    <div
-      translate="no"
-      className="min-h-full bg-gradient-to-b from-slate-100 to-slate-200/80 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+    <PageShell
+      title="Financeiro"
+      subtitle="Importe boletos, cadastre vencimentos e use WhatsApp automaticamente conforme o prazo."
     >
-      <div className="mx-auto max-w-[1400px] space-y-8">
         <section className="rounded-2xl border border-slate-200/80 bg-white shadow-md shadow-slate-200/50 overflow-hidden">
           <div className="border-b border-slate-100 bg-slate-50/90 px-5 py-4 sm:px-6">
             <h2 className="text-base font-semibold text-slate-900">
@@ -724,7 +724,6 @@ export default function Financeiro() {
             </div>
           </div>
         </section>
-      </div>
-    </div>
+    </PageShell>
   );
 }

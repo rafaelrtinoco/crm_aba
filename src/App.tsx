@@ -42,7 +42,7 @@ function App() {
             <Menu className="size-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+            <p className="text-xs text-white font-medium uppercase tracking-wider text-slate-500">
               ABA Seguros
             </p>
             <h2 className="truncate text-lg font-semibold text-slate-900">

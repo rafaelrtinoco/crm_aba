@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { formatDocumento } from "../lib/documentoFormat";
+import PageShell from "../components/PageShell";
 import {
   loadBoletosFromStorage,
   loadClientesFromStorage,
@@ -217,21 +218,17 @@ export default function MarketingRelacionamento() {
   }
 
   return (
-    <div
-      translate="no"
-      className="min-h-full bg-gradient-to-b from-slate-100 to-slate-200/80 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+    <PageShell
+      title="Marketing & relacionamento"
+      subtitle={
+        <>
+          Quadro por classificação (histórico de boletos). Escolha o template por
+          cliente e envie WhatsApp. Crie novos modelos na aba{" "}
+          <strong>Mensagens</strong>.
+        </>
+      }
+      maxWidthClassName="max-w-[1600px]"
     >
-      <div className="mx-auto max-w-[1600px] space-y-6">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-md">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Relacionamento & Marketing
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Quadro por classificação (histórico de boletos). Escolha o template
-            por cliente e envie WhatsApp. Crie novos modelos na aba{" "}
-            <strong>Mensagens</strong>.
-          </p>
-        </div>
 
         <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="min-w-[200px] flex-1">
@@ -450,7 +447,6 @@ export default function MarketingRelacionamento() {
             </table>
           </div>
         </div>
-      </div>
-    </div>
+    </PageShell>
   );
 }

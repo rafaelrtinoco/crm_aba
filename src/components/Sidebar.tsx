@@ -36,7 +36,7 @@ export default function Sidebar({
       className={[
         "h-screen shrink-0 flex flex-col border-r border-slate-800/80",
         "bg-[#0b1220] text-slate-200 transition-[width] duration-200 ease-out",
-        collapsed ? "w-[4.25rem]" : "w-60",
+        collapsed ? "w-17" : "w-60",
       ].join(" ")}
     >
       <div
@@ -56,11 +56,13 @@ export default function Sidebar({
           </div>
         ) : (
           <div
-            className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-xs font-bold text-sky-300"
+            className="mx-auto mb-6 flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-xs font-bold text-sky-300"
             aria-hidden
           >
             ABA
+            
           </div>
+          
         )}
         <button
           type="button"
@@ -97,7 +99,7 @@ export default function Sidebar({
                   : "text-slate-400 hover:bg-white/10 hover:text-white",
               ].join(" ")}
             >
-              <Icon className="size-[18px] shrink-0" strokeWidth={2} />
+              <Icon className="size-4.5 shrink-0" strokeWidth={2} />
               {!collapsed && (
                 <span className="text-sm font-medium leading-tight">{label}</span>
               )}

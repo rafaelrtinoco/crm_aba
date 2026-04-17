@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import PageShell from "../components/PageShell";
 import {
   loadMarketingTemplatesExtra,
   loadTemplatesBoleto,
@@ -59,23 +60,23 @@ export default function Mensagens() {
   }
 
   return (
-    <div
-      translate="no"
-      className="min-h-full bg-gradient-to-b from-slate-100 to-slate-200/80 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+    <PageShell
+      title="Mensagens"
+      subtitle="Crie e mantenha templates usados no WhatsApp (Financeiro e Marketing)."
+      maxWidthClassName="max-w-3xl"
     >
-      <div className="mx-auto max-w-3xl space-y-8">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-md">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Templates WhatsApp — boletos (Financeiro)
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Usados automaticamente no Financeiro conforme o prazo. Variáveis:{" "}
-            <code className="rounded bg-slate-100 px-1 text-xs">
-              {"{{nome}} {{vencimento}} {{ramo}} {{documento}} {{seguradora}}"}
-            </code>
-            .
-          </p>
-        </div>
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-md">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Templates WhatsApp — boletos (Financeiro)
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Usados automaticamente no Financeiro conforme o prazo. Variáveis:{" "}
+          <code className="rounded bg-slate-100 px-1 text-xs">
+            {"{{nome}} {{vencimento}} {{ramo}} {{documento}} {{seguradora}}"}
+          </code>
+          .
+        </p>
+      </div>
 
         {(Object.keys(labelsBoleto) as (keyof TemplatesBoleto)[]).map((key) => (
           <div
@@ -192,7 +193,6 @@ export default function Mensagens() {
             <span className="text-sm text-emerald-700">Salvo.</span>
           ) : null}
         </div>
-      </div>
-    </div>
+    </PageShell>
   );
 }
