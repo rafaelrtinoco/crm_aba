@@ -6,6 +6,7 @@ import {
   MessageSquareText,
   Users,
   Wallet,
+  LogOut, // 1. Importar o ícone de Logout
 } from "lucide-react";
 import type { AppRoute } from "../routes";
 
@@ -39,6 +40,7 @@ export default function Sidebar({
         collapsed ? "w-17" : "w-60",
       ].join(" ")}
     >
+      {/* SEÇÃO SUPERIOR: Logo e Toggle */}
       <div
         className={[
           "flex flex-col gap-1 border-b border-slate-700/60",
@@ -60,9 +62,7 @@ export default function Sidebar({
             aria-hidden
           >
             ABA
-            
           </div>
-          
         )}
         <button
           type="button"
@@ -73,7 +73,7 @@ export default function Sidebar({
           ].join(" ")}
           aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
         >
-          {!collapsed && <span className="text-xs font-medium">Recolher</span>}
+          {!collapsed && <span className="text-xs font-medium text-slate-400">Recolher</span>}
           {collapsed ? (
             <ChevronRight className="size-5 shrink-0" strokeWidth={2} />
           ) : (
@@ -82,6 +82,7 @@ export default function Sidebar({
         </button>
       </div>
 
+      {/* NAVEGAÇÃO PRINCIPAL */}
       <nav className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
         {items.map(({ route, label, icon: Icon }) => {
           const active = current === route;
@@ -107,6 +108,25 @@ export default function Sidebar({
           );
         })}
       </nav>
+
+      {/* 2. SEÇÃO DE RODAPÉ: Botão de Logout */}
+      <div className="p-2 border-t border-slate-700/60">
+        <button
+          type="button"
+          onClick={() => onNavigate("login")} // Navega de volta para o login
+          title={collapsed ? "Sair do sistema" : undefined}
+          className={[
+            "flex items-center gap-3 w-full rounded-lg text-left transition-colors",
+            "text-rose-400 hover:bg-rose-500/10 hover:text-rose-300",
+            collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5",
+          ].join(" ")}
+        >
+          <LogOut className="size-4.5 shrink-0" strokeWidth={2} />
+          {!collapsed && (
+            <span className="text-sm font-medium leading-tight">Sair do sistema</span>
+          )}
+        </button>
+      </div>
     </aside>
   );
 }

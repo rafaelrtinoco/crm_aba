@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# ABA Seguros CRM
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este projeto é um painel inteligente para gestão de clientes, financeiro, marketing e mensagens, desenvolvido com **React**, **TypeScript**, **Vite** e **Tailwind CSS**.
 
-Currently, two official plugins are available:
+## Tecnologias Utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Lucide React Icons](https://lucide.dev/)
+- ESLint e plugins para qualidade de código
 
-## React Compiler
+## Funcionalidades
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Sidebar responsiva com navegação entre módulos:
+  - Painel
+  - Clientes
+  - Financeiro
+  - Marketing & Relacionamento
+  - Mensagens
+- Layout moderno e responsivo
+- Temas e cores customizáveis via Tailwind
+- Código organizado em componentes reutilizáveis
 
-## Expanding the ESLint configuration
+## Como rodar o projeto
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/seu-usuario/aba-crm.git
+   cd aba-crm/aba_seguros
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+3. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+4. Acesse [http://localhost:5173](http://localhost:5173) no navegador.
+
+## Estrutura de Pastas
+
+```
+src/
+  components/      # Componentes reutilizáveis (Sidebar, etc)
+  routes/          # Definição das rotas da aplicação
+  index.css        # Estilos globais e Tailwind
+  main.tsx         # Ponto de entrada da aplicação
+  ...
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Customização de Estilos
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Utilize as classes utilitárias do Tailwind diretamente nos componentes.
+- Para cores customizadas, utilize a sintaxe entre colchetes, ex: `bg-[#0b1220]`.
+- Evite sobrescrever estilos globais no CSS para garantir que o Tailwind funcione corretamente em cada componente.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Observações
+
+- Certifique-se de estar usando a versão correta do Tailwind CSS (preferencialmente v3 ou superior).
+- Para adicionar novas páginas ou módulos, crie novos componentes em `src/components` e adicione as rotas em `src/routes`.
+
+---
+
+ 
+Desenvolvido por Equipe ABA Seguros.

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 /* 1. Faz o Tailwind v4 ler o seu arquivo de cores e o 'important: true' */
 /* Ajuste o caminho se o seu arquivo não estiver na raiz */

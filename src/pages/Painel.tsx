@@ -12,39 +12,28 @@ import type { Boleto } from "../types/boleto";
 
 function todayIso() {
   const d = new Date();
-
   const y = d.getFullYear();
-
   const m = String(d.getMonth() + 1).padStart(2, "0");
-
   const day = String(d.getDate()).padStart(2, "0");
-
   return `${y}-${m}-${day}`;
 }
 
 export default function Painel() {
   const [clientesN, setClientesN] = useState(0);
-
   const [ativosN, setAtivosN] = useState(0);
-
   const [boletos, setBoletos] = useState<Boleto[]>([]);
 
   useEffect(() => {
     const c = loadClientesFromStorage();
-
     setClientesN(c.length);
-
     setAtivosN(c.filter((x) => x.statusCadastro !== "Cancelado").length);
-
     setBoletos(loadBoletosFromStorage());
   }, []);
 
   const hoje = todayIso();
 
   const pendentes = boletos.filter((b) => b.status === "Pendente").length;
-
   const pagos = boletos.filter((b) => b.status === "Pago").length;
-
   const vencidosPendente = boletos.filter(
     (b) => b.status === "Pendente" && b.vencimento < hoje
   ).length;
@@ -52,49 +41,33 @@ export default function Painel() {
   const kpis = [
     {
       label: "Clientes na base",
-
       value: String(clientesN),
-
       sub: `${ativosN} ativos`,
-
       icon: Users,
-
       accent: "from-sky-500 to-blue-700",
     },
 
     {
       label: "Boletos pendentes",
-
       value: String(pendentes),
-
       sub: "Financeiro",
-
       icon: Wallet,
-
       accent: "from-amber-500 to-orange-600",
     },
 
     {
       label: "Boletos pagos",
-
       value: String(pagos),
-
       sub: "Histórico positivo",
-
       icon: TrendingUp,
-
       accent: "from-emerald-500 to-teal-700",
     },
 
     {
       label: "Pendências vencidas",
-
       value: String(vencidosPendente),
-
       sub: "Ação sugerida",
-
       icon: BarChart3,
-
       accent: "from-rose-500 to-red-700",
     },
   ];
