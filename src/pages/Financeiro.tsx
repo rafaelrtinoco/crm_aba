@@ -585,7 +585,7 @@ export default function Financeiro() {
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50/30">
-              <table className="min-w-[1080px] w-full text-sm border-collapse">
+              <table className="min-w-270 w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-100/95 text-left text-slate-700">
                     <th className="px-3 py-2.5 font-semibold whitespace-nowrap">
@@ -679,7 +679,7 @@ export default function Financeiro() {
                                   e.target.value as BoletoStatus
                                 )
                               }
-                              className="input h-9 min-w-[128px] py-1 text-sm"
+                              className="input h-9 min-w-32 py-1 text-sm"
                             >
                               <option value="Pendente">Pendente</option>
                               <option value="Pago">Pago</option>

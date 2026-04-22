@@ -231,7 +231,7 @@ export default function MarketingRelacionamento() {
     >
 
         <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="min-w-[200px] flex-1">
+          <div className="min-w-50 flex-1">
             <label className="mb-1 block text-xs font-medium text-slate-600">
               Buscar
             </label>
@@ -297,11 +297,11 @@ export default function MarketingRelacionamento() {
         </div>
 
         <div className="overflow-x-auto pb-2">
-          <div className="flex min-w-[900px] gap-3">
+          <div className="flex min-w-225 gap-3">
             {tierOrder.map((tier) => (
               <div
                 key={tier}
-                className="flex min-h-[320px] w-72 shrink-0 flex-col rounded-2xl border border-slate-200 bg-slate-100/80 shadow-inner"
+                className="flex min-h-80 w-72 shrink-0 flex-col rounded-2xl border border-slate-200 bg-slate-100/80 shadow-inner"
               >
                 <div
                   className={`rounded-t-2xl px-3 py-2 text-sm font-bold ${columnHeader[tier]}`}
@@ -342,7 +342,7 @@ export default function MarketingRelacionamento() {
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-[800px] w-full text-sm">
+            <table className="min-w-200 w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-slate-700">
                   <th className="px-4 py-3 font-semibold">Cliente</th>
@@ -397,7 +397,7 @@ export default function MarketingRelacionamento() {
                         </td>
                         <td className="px-4 py-3">
                           <select
-                            className="input h-9 max-w-[240px] py-1 text-xs"
+                            className="input h-9 max-w-60 py-1 text-xs"
                             value={tid}
                             onChange={(e) =>
                               setTemplateFor(r.cliente.id, e.target.value)
