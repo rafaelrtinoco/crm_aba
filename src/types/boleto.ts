@@ -21,5 +21,5 @@ export type ClienteLite = {
   telefone?: string;
   seguradora?: string;
   /** Ativo = cliente atual; Cancelado = ex-cliente (relacionamento/marketing) */
-  statusCadastro?: StatusCadastroCliente;
+  status_cadastro?: StatusCadastroCliente;
 };

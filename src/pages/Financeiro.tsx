@@ -68,7 +68,7 @@ function nomeClienteCell(c: ClienteLite | undefined) {
   if (!c) {
     return <span className="text-amber-700">Sem vínculo</span>;
   }
-  if (c.statusCadastro === "Cancelado") {
+  if (c.status_cadastro === "Cancelado") {
     return (
       <span className="inline-flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
         <span>{c.nome}</span>
@@ -488,7 +488,7 @@ export default function Financeiro() {
               <p className="text-sm text-emerald-800">
                 Vínculo: <strong>{clienteLinhaSelecionada.nome}</strong> —{" "}
                 {clienteLinhaSelecionada.seguradora ?? "—"} —{" "}
-                {clienteLinhaSelecionada.statusCadastro === "Cancelado"
+                {clienteLinhaSelecionada.status_cadastro === "Cancelado"
                   ? "cadastro cancelado (boleto permitido)"
                   : "ativo"}
               </p>

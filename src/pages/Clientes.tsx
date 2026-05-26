@@ -5,7 +5,7 @@ import { DOC_MAX_DIGITS, formatDocumento } from "../lib/documentoFormat";
 import Input from "../components/Input";
 import PageShell from "../components/PageShell";
 
-type StatusCadastro = "Ativo" | "Cancelado";
+type status_cadastro = "Ativo" | "Cancelado";
 
 type Cliente = {
   id: number;
@@ -16,7 +16,7 @@ type Cliente = {
   seguradora: string;
   apolice: string;
   tipo: "Cliente" | "Lead";
-  statusCadastro: StatusCadastro;
+  status_cadastro: status_cadastro;
 };
 
 const FONE_MAX_DIGITS = 11;
@@ -128,8 +128,8 @@ function readClientesFromStorage(): Cliente[] {
     return parsed.map((c) => ({
       ...c,
       tipo: normalizeTipo(c.tipo),
-      statusCadastro:
-        String((c as Cliente).statusCadastro ?? "")
+      status_cadastro:
+        String((c as Cliente).status_cadastro ?? "")
           .toLowerCase()
           .trim() === "cancelado"
           ? "Cancelado"
@@ -155,7 +155,7 @@ export default function Clientes() {
     seguradora: "Porto Seguro",
     apolice: "",
     tipo: "Cliente" as "Cliente" | "Lead",
-    statusCadastro: "Ativo" as StatusCadastro,
+    status_cadastro: "Ativo" as status_cadastro,
   });
 
   useEffect(() => {
@@ -228,7 +228,7 @@ export default function Clientes() {
       seguradora: "Porto Seguro",
       apolice: "",
       tipo: "Cliente",
-      statusCadastro: "Ativo",
+      status_cadastro: "Ativo",
     });
   }
 
@@ -236,8 +236,8 @@ export default function Clientes() {
     setForm({
       ...cliente,
       tipo: normalizeTipo(cliente.tipo),
-      statusCadastro:
-        cliente.statusCadastro === "Cancelado" ? "Cancelado" : "Ativo",
+      status_cadastro:
+        cliente.status_cadastro === "Cancelado" ? "Cancelado" : "Ativo",
     });
     setEditandoId(cliente.id);
   }
@@ -378,8 +378,8 @@ export default function Clientes() {
               </SelectField>
 
               <SelectField
-                name="statusCadastro"
-                value={form.statusCadastro}
+                name="status_cadastro"
+                value={form.status_cadastro}
                 onChange={handleChange}
                 label="Status"
               >
@@ -402,7 +402,7 @@ export default function Clientes() {
                       seguradora: "Porto Seguro",
                       apolice: "",
                       tipo: "Cliente",
-                      statusCadastro: "Ativo",
+                      status_cadastro: "Ativo",
                     });
                   }}
                   className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
@@ -510,7 +510,7 @@ export default function Clientes() {
                           </span>
                         </td>
                         <td className="px-3 py-2.5 whitespace-nowrap">
-                          {c.statusCadastro === "Cancelado" ? (
+                          {c.status_cadastro === "Cancelado" ? (
                             <span className="inline-block rounded-md bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-900">
                               Cancelado
                             </span>
