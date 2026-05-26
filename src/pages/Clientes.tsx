@@ -208,10 +208,21 @@ export default function Clientes() {
     }
 
     if (editandoId) {
-      // Operação de UPDATE no Supabase
-      const { error } = await supabase
+      // 1. Deleta o registro antigo
+      const { error: deleteError } = await supabase
         .from("clientes")
-        .update({
+        .delete()
+        .eq("id", editandoId);
+
+      if (deleteError) {
+        alert("Erro ao atualizar dados: " + deleteError.message);
+        return;
+      }
+
+      // 2. Insere com o mesmo ID
+      const { error: insertError } = await supabase.from("clientes").insert([
+        {
+          id: editandoId,
           nome: form.nome,
           documento: form.documento,
           ramo: form.ramo,
@@ -219,14 +230,15 @@ export default function Clientes() {
           seguradora: form.seguradora,
           apolice: form.apolice,
           tipo: form.tipo,
-          status_cadastro: form.status_cadastro, // Garantir que está em snake_case como no banco
-        })
-        .eq("id", editandoId); // Procura pelo ID correto
+          status_cadastro: form.status_cadastro,
+        },
+      ]);
 
-      if (error) {
-        alert("Erro ao atualizar dados: " + error.message);
+      if (insertError) {
+        alert("Erro ao atualizar dados: " + insertError.message);
         return;
       }
+
       setEditandoId(null);
     } else {
       // Operação de INSERT no Supabase
