@@ -26,7 +26,7 @@ export default function Painel() {
   useEffect(() => {
     const c = loadClientesFromStorage();
     setClientesN(c.length);
-    setAtivosN(c.filter((x) => x.statusCadastro !== "Cancelado").length);
+    setAtivosN(c.filter((x) => x.status_cadastro !== "Cancelado").length);
     setBoletos(loadBoletosFromStorage());
   }, []);
 

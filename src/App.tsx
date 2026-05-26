@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import Clientes from "./pages/Clientes";
 import Financeiro from "./pages/Financeiro";
@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import type { AppRoute } from "./routes";
 import { routeTitles } from "./routes";
 import { Menu } from "lucide-react";
+import { supabase } from "./lib/supabaseClient";
 
 function App() {
   const [route, setRoute] = useState<AppRoute>("login");
@@ -21,6 +22,22 @@ function App() {
       setSidebarCollapsed(true);
     }
   }
+
+  useEffect(() => {
+  async function testarConexao() {
+    const { data, error } = await supabase
+      .from('templates_mensagens')
+      .select('id, label');
+    
+    if (error) {
+      console.error("❌ Erro ao conectar no Supabase:", error.message);
+    } else {
+      console.log("🚀 Conexão feita com sucesso! Dados recebidos do banco:", data);
+    }
+  }
+
+  testarConexao();
+}, []);
 
   // 1. Verificamos se estamos na rota de login
   const isLoginPage = route === "login";

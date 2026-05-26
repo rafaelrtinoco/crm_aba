@@ -77,7 +77,7 @@ function CardCliente({
         <div className="min-w-0">
           <p className="truncate text-sm font-bold text-slate-900">{c.nome}</p>
           <p className="text-xs text-slate-500">{c.ramo}</p>
-          {c.statusCadastro === "Cancelado" ? (
+          {c.status_cadastro === "Cancelado" ? (
             <span className="mt-1 inline-block rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-800">
               Cancelado
             </span>
@@ -171,9 +171,9 @@ export default function MarketingRelacionamento() {
       const c = r.cliente;
       if (filtroRamo && c.ramo !== filtroRamo) return false;
       if (filtroTier && r.tier !== filtroTier) return false;
-      if (filtroStatus === "Ativo" && c.statusCadastro === "Cancelado")
+      if (filtroStatus === "Ativo" && c.status_cadastro === "Cancelado")
         return false;
-      if (filtroStatus === "Cancelado" && c.statusCadastro !== "Cancelado")
+      if (filtroStatus === "Cancelado" && c.status_cadastro !== "Cancelado")
         return false;
       if (q) {
         const matchNome = c.nome.toLowerCase().includes(q);
@@ -379,7 +379,7 @@ export default function MarketingRelacionamento() {
                       >
                         <td className="px-4 py-3 font-medium text-slate-900">
                           {r.cliente.nome}
-                          {r.cliente.statusCadastro === "Cancelado" ? (
+                          {r.cliente.status_cadastro === "Cancelado" ? (
                             <span className="ml-2 text-xs text-rose-600">
                               (cancelado)
                             </span>
