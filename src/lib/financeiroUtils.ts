@@ -44,7 +44,7 @@ export function normalizeClienteFromStorage(raw: unknown): ClienteLite | null {
     ramo: String(c.ramo ?? ""),
     telefone: c.telefone != null ? String(c.telefone) : undefined,
     seguradora: c.seguradora != null ? String(c.seguradora) : undefined,
-    statusCadastro: normalizeStatusCadastro(c.statusCadastro),
+    status_cadastro: normalizeStatusCadastro(c.statusCadastro),
   };
 }
 
