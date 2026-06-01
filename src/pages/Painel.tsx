@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
-
 import { BarChart3, TrendingUp, Wallet, Users } from "lucide-react";
-
-import {
-  loadBoletosFromStorage,
-  loadClientesFromStorage,
-} from "../lib/financeiroUtils";
+import { supabase } from "../lib/supabaseClient"; // Importação oficial do cliente unificado
 import PageShell from "../components/PageShell";
 
-import type { Boleto } from "../types/boleto";
+type BoletoPainel = {
+  vencimento: string;
+  status: "Pago" | "Pendente";
+};
 
 function todayIso() {
   const d = new Date();
@@ -21,13 +19,37 @@ function todayIso() {
 export default function Painel() {
   const [clientesN, setClientesN] = useState(0);
   const [ativosN, setAtivosN] = useState(0);
-  const [boletos, setBoletos] = useState<Boleto[]>([]);
+  const [boletos, setBoletos] = useState<BoletoPainel[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Busca as métricas consolidadas direto da nuvem
+  async function carregarMetricasPainel() {
+    setLoading(true);
+    
+    // 1. Busca dados mínimos de cadastro para contagem de clientes
+    const { data: dataClientes } = await supabase
+      .from("clientes")
+      .select("status_cadastro");
+
+    // 2. Busca dados mínimos financeiros para contagem de status de boletos
+    const { data: dataBoletos } = await supabase
+      .from("boletos")
+      .select("vencimento, status");
+
+    if (dataClientes) {
+      setClientesN(dataClientes.length);
+      setAtivosN(dataClientes.filter((x) => x.status_cadastro !== "Cancelado").length);
+    }
+
+    if (dataBoletos) {
+      setBoletos(dataBoletos as BoletoPainel[]);
+    }
+    
+    setLoading(false);
+  }
 
   useEffect(() => {
-    const c = loadClientesFromStorage();
-    setClientesN(c.length);
-    setAtivosN(c.filter((x) => x.status_cadastro !== "Cancelado").length);
-    setBoletos(loadBoletosFromStorage());
+    carregarMetricasPainel();
   }, []);
 
   const hoje = todayIso();
@@ -41,31 +63,28 @@ export default function Painel() {
   const kpis = [
     {
       label: "Clientes na base",
-      value: String(clientesN),
-      sub: `${ativosN} ativos`,
+      value: loading ? "..." : String(clientesN),
+      sub: loading ? "Carregando..." : `${ativosN} ativos`,
       icon: Users,
       accent: "from-sky-500 to-blue-700",
     },
-
     {
       label: "Boletos pendentes",
-      value: String(pendentes),
+      value: loading ? "..." : String(pendentes),
       sub: "Financeiro",
       icon: Wallet,
       accent: "from-amber-500 to-orange-600",
     },
-
     {
       label: "Boletos pagos",
-      value: String(pagos),
+      value: loading ? "..." : String(pagos),
       sub: "Histórico positivo",
       icon: TrendingUp,
       accent: "from-emerald-500 to-teal-700",
     },
-
     {
       label: "Pendências vencidas",
-      value: String(vencidosPendente),
+      value: loading ? "..." : String(vencidosPendente),
       sub: "Ação sugerida",
       icon: BarChart3,
       accent: "from-rose-500 to-red-700",

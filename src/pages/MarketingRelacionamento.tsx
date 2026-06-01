@@ -2,22 +2,24 @@ import { useEffect, useMemo, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { formatDocumento } from "../lib/documentoFormat";
 import PageShell from "../components/PageShell";
-import {
-  loadBoletosFromStorage,
-  loadClientesFromStorage,
-  onlyDigits,
-} from "../lib/financeiroUtils";
-import {
-  applyTemplatePlaceholders,
-  digitsToWhatsAppBr,
-  getSelectableTemplates,
-} from "../lib/mensagensTemplates";
-import {
-  rankingClientesPorPagamento,
-  type ClienteRankingRow,
-  type TierCliente,
-} from "../lib/marketingRanking";
+import { supabase } from "../lib/supabaseClient";
+import { onlyDigits } from "../lib/financeiroUtils";
+import { applyTemplatePlaceholders, digitsToWhatsAppBr } from "../lib/mensagensTemplates";
+import { rankingClientesPorPagamento, type ClienteRankingRow, type TierCliente } from "../lib/marketingRanking";
 import { todayIsoBr } from "../lib/vencimentoBoleto";
+import type { Boleto, BoletoStatus, ClienteLite } from "../types/boleto";
+
+// Tipo estendido para capturar o template preferido que vem do Supabase
+type ClienteMarketing = ClienteLite & {
+  template_preferido_id?: string;
+};
+
+type TemplateSupa = {
+  id: string;
+  label: string;
+  corpo: string;
+  tipo: "boleto" | "marketing";
+};
 
 const tierStyle: Record<TierCliente, string> = {
   Ouro: "bg-amber-100 text-amber-950 ring-amber-300",
@@ -43,7 +45,7 @@ function CardCliente({
 }: {
   row: ClienteRankingRow;
   templateId: string;
-  templates: ReturnType<typeof getSelectableTemplates>;
+  templates: TemplateSupa[];
   onTemplateChange: (id: string) => void;
 }) {
   const c = row.cliente;
@@ -115,42 +117,55 @@ function CardCliente({
 }
 
 export default function MarketingRelacionamento() {
-  const [version, setVersion] = useState(0);
+  const [clientes, setClientes] = useState<ClienteMarketing[]>([]);
+  const [boletos, setBoletos] = useState<Boleto[]>([]);
+  const [templates, setTemplates] = useState<TemplateSupa[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [busca, setBusca] = useState("");
   const [filtroRamo, setFiltroRamo] = useState("");
   const [filtroTier, setFiltroTier] = useState<"" | TierCliente>("");
-  const [filtroStatus, setFiltroStatus] = useState<"" | "Ativo" | "Cancelado">(
-    ""
-  );
-  const [templateByClienteId, setTemplateByClienteId] = useState<
-    Record<number, string>
-  >({});
+  const [filtroStatus, setFiltroStatus] = useState<"" | "Ativo" | "Cancelado">("");
+
+  // Carrega em tempo real todos os dados cruzados direto do Supabase
+  async function carregarDadosMarketing() {
+    setLoading(true);
+    
+    const { data: dataClientes } = await supabase
+      .from("clientes")
+      .select("id, nome, documento, ramo, telefone, seguradora, status_cadastro, template_preferido_id");
+
+    const { data: dataBoletos } = await supabase
+      .from("boletos")
+      .select("id, documento_digits, ramo, vencimento, status");
+
+    const { data: dataTemplates } = await supabase
+      .from("templates_mensagens")
+      .select("id, label, corpo, tipo");
+
+    if (dataClientes) setClientes(dataClientes as ClienteMarketing[]);
+    if (dataTemplates) setTemplates(dataTemplates as TemplateSupa[]);
+    if (dataBoletos) {
+      setBoletos(
+        dataBoletos.map((b) => ({
+          id: b.id,
+          documentoDigits: b.documento_digits,
+          ramo: b.ramo,
+          vencimento: b.vencimento,
+          status: b.status as BoletoStatus,
+        }))
+      );
+    }
+    setLoading(false);
+  }
 
   useEffect(() => {
-    const sync = () => setVersion((v) => v + 1);
-    window.addEventListener("focus", sync);
-    const onVis = () => {
-      if (document.visibilityState === "visible") sync();
-    };
-    document.addEventListener("visibilitychange", onVis);
-    return () => {
-      window.removeEventListener("focus", sync);
-      document.removeEventListener("visibilitychange", onVis);
-    };
+    carregarDadosMarketing();
   }, []);
 
   const hoje = todayIsoBr();
-  const clientes = useMemo(() => {
-    void version;
-    return loadClientesFromStorage();
-  }, [version]);
-  const boletos = useMemo(() => {
-    void version;
-    return loadBoletosFromStorage();
-  }, [version]);
 
-  const templates = useMemo(() => getSelectableTemplates(), [version]);
-
+  // Executa o algoritmo de classificação em cima dos dados da nuvem
   const ranked = useMemo(
     () => rankingClientesPorPagamento(clientes, boletos, hoje, onlyDigits),
     [clientes, boletos, hoje]
@@ -171,15 +186,11 @@ export default function MarketingRelacionamento() {
       const c = r.cliente;
       if (filtroRamo && c.ramo !== filtroRamo) return false;
       if (filtroTier && r.tier !== filtroTier) return false;
-      if (filtroStatus === "Ativo" && c.status_cadastro === "Cancelado")
-        return false;
-      if (filtroStatus === "Cancelado" && c.status_cadastro !== "Cancelado")
-        return false;
+      if (filtroStatus === "Ativo" && c.status_cadastro === "Cancelado") return false;
+      if (filtroStatus === "Cancelado" && c.status_cadastro !== "Cancelado") return false;
       if (q) {
         const matchNome = c.nome.toLowerCase().includes(q);
-        const matchDoc =
-          c.documento.toLowerCase().includes(q) ||
-          onlyDigits(c.documento).includes(dq);
+        const matchDoc = c.documento.toLowerCase().includes(q) || onlyDigits(c.documento).includes(dq);
         const matchRamo = c.ramo.toLowerCase().includes(q);
         const matchTier = r.tier.toLowerCase().includes(q);
         if (!matchNome && !matchDoc && !matchRamo && !matchTier) return false;
@@ -202,120 +213,101 @@ export default function MarketingRelacionamento() {
   }, [filtrados]);
 
   const sortedTable = useMemo(
-    () =>
-      [...filtrados].sort(
-        (a, b) => tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier)
-      ),
+    () => [...filtrados].sort((a, b) => tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier)),
     [filtrados]
   );
 
-  function templateFor(id: number): string {
-    return templateByClienteId[id] ?? defaultTplId;
+  // Lê a preferência do template que veio mapeada da tabela de clientes
+  function templateFor(idCliente: number): string {
+    const cli = clientes.find((x) => x.id === idCliente);
+    return cli?.template_preferido_id ?? defaultTplId;
   }
 
-  function setTemplateFor(id: number, tid: string) {
-    setTemplateByClienteId((prev) => ({ ...prev, [id]: tid }));
+  // Grava em tempo real a escolha do template diretamente na tabela de clientes
+  async function alterarTemplatePreferido(idCliente: number, idTemplate: string) {
+    const { error } = await supabase
+      .from("clientes")
+      .update({ template_preferido_id: idTemplate })
+      .eq("id", idCliente);
+
+    if (error) {
+      alert("Erro ao salvar preferência de template: " + error.message);
+    } else {
+      setClientes((prev) =>
+        prev.map((c) => (c.id === idCliente ? { ...c, template_preferido_id: idTemplate } : c))
+      );
+    }
   }
 
   return (
     <PageShell
       title="Marketing & relacionamento"
-      subtitle={
-        <>
-          Quadro por classificação (histórico de boletos). Escolha o template por
-          cliente e envie WhatsApp. Crie novos modelos na aba{" "}
-          <strong>Mensagens</strong>.
-        </>
-      }
+      subtitle="Quadro por classificação (histórico de boletos). Escolha o template por cliente e envie WhatsApp. Crie novos modelos na aba Mensagens."
       maxWidthClassName="max-w-[1600px]"
     >
-
-        <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="min-w-50 flex-1">
-            <label className="mb-1 block text-xs font-medium text-slate-600">
-              Buscar
-            </label>
-            <input
-              className="input"
-              placeholder="Nome, CPF, ramo ou classificação…"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-            />
-          </div>
-          <div className="w-40">
-            <label className="mb-1 block text-xs font-medium text-slate-600">
-              Ramo
-            </label>
-            <select
-              className="input"
-              value={filtroRamo}
-              onChange={(e) => setFiltroRamo(e.target.value)}
-            >
-              <option value="">Todos</option>
-              {ramosUniq.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="w-44">
-            <label className="mb-1 block text-xs font-medium text-slate-600">
-              Classificação
-            </label>
-            <select
-              className="input"
-              value={filtroTier}
-              onChange={(e) =>
-                setFiltroTier((e.target.value || "") as "" | TierCliente)
-              }
-            >
-              <option value="">Todas</option>
-              {tierOrder.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="w-44">
-            <label className="mb-1 block text-xs font-medium text-slate-600">
-              Status cadastro
-            </label>
-            <select
-              className="input"
-              value={filtroStatus}
-              onChange={(e) =>
-                setFiltroStatus(e.target.value as "" | "Ativo" | "Cancelado")
-              }
-            >
-              <option value="">Todos</option>
-              <option value="Ativo">Ativo</option>
-              <option value="Cancelado">Cancelado</option>
-            </select>
-          </div>
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="min-w-50 flex-1">
+          <label className="mb-1 block text-xs font-medium text-slate-600">Buscar</label>
+          <input
+            className="input"
+            placeholder="Nome, CPF, ramo ou classificação…"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
         </div>
+        <div className="w-40">
+          <label className="mb-1 block text-xs font-medium text-slate-600">Ramo</label>
+          <select className="input" value={filtroRamo} onChange={(e) => setFiltroRamo(e.target.value)}>
+            <option value="">Todos</option>
+            {ramosUniq.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+        <div className="w-44">
+          <label className="mb-1 block text-xs font-medium text-slate-600">Classificação</label>
+          <select
+            className="input"
+            value={filtroTier}
+            onChange={(e) => setFiltroTier((e.target.value || "") as "" | TierCliente)}
+          >
+            <option value="">Todas</option>
+            {tierOrder.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+        <div className="w-44">
+          <label className="mb-1 block text-xs font-medium text-slate-600">Status cadastro</label>
+          <select
+            className="input"
+            value={filtroStatus}
+            onChange={(e) => setFiltroStatus(e.target.value as "" | "Ativo" | "Cancelado")}
+          >
+            <option value="">Todos</option>
+            <option value="Ativo">Ativo</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
 
-        <div className="overflow-x-auto pb-2">
-          <div className="flex min-w-225 gap-3">
-            {tierOrder.map((tier) => (
+      <div className="overflow-x-auto pb-2">
+        <div className="flex min-w-225 gap-3">
+          {loading ? (
+            <p className="p-6 text-sm text-slate-500 animate-pulse">Carregando inteligência de classificação...</p>
+          ) : (
+            tierOrder.map((tier) => (
               <div
                 key={tier}
                 className="flex min-h-80 w-72 shrink-0 flex-col rounded-2xl border border-slate-200 bg-slate-100/80 shadow-inner"
               >
-                <div
-                  className={`rounded-t-2xl px-3 py-2 text-sm font-bold ${columnHeader[tier]}`}
-                >
+                <div className={`rounded-t-2xl px-3 py-2 text-sm font-bold ${columnHeader[tier]}`}>
                   {tier}
-                  <span className="ml-2 font-normal opacity-80">
-                    ({porColuna[tier].length})
-                  </span>
+                  <span className="ml-2 font-normal opacity-80">({porColuna[tier].length})</span>
                 </div>
                 <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
                   {porColuna[tier].length === 0 ? (
-                    <p className="p-3 text-center text-xs text-slate-500">
-                      Nenhum cliente neste filtro.
-                    </p>
+                    <p className="p-3 text-center text-xs text-slate-500">Nenhum cliente neste filtro.</p>
                   ) : (
                     porColuna[tier].map((row) => (
                       <CardCliente
@@ -323,130 +315,106 @@ export default function MarketingRelacionamento() {
                         row={row}
                         templateId={templateFor(row.cliente.id)}
                         templates={templates}
-                        onTemplateChange={(tid) =>
-                          setTemplateFor(row.cliente.id, tid)
-                        }
+                        onTemplateChange={(tid) => alterarTemplatePreferido(row.cliente.id, tid)}
                       />
                     ))
                   )}
                 </div>
               </div>
-            ))}
-          </div>
+            ))
+          )}
         </div>
+      </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
-            <h3 className="text-sm font-semibold text-slate-800">
-              Tabela resumo
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-200 w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-left text-slate-700">
-                  <th className="px-4 py-3 font-semibold">Cliente</th>
-                  <th className="px-4 py-3 font-semibold">Ramo</th>
-                  <th className="px-4 py-3 font-semibold">Classificação</th>
-                  <th className="px-4 py-3 font-semibold">Template</th>
-                  <th className="px-4 py-3 text-right font-semibold">Ação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedTable.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-10 text-center text-slate-500"
-                    >
-                      Nenhum cliente no filtro.
-                    </td>
-                  </tr>
-                ) : (
-                  sortedTable.map((r) => {
-                    const tid = templateFor(r.cliente.id);
-                    const tpl = templates.find((t) => t.id === tid) ?? templates[0];
-                    const wa = r.cliente.telefone
-                      ? digitsToWhatsAppBr(r.cliente.telefone)
-                      : null;
-                    const docFmt = formatDocumento(
-                      onlyDigits(r.cliente.documento)
-                    );
-                    return (
-                      <tr
-                        key={r.cliente.id}
-                        className="border-b border-slate-100 hover:bg-slate-50/80"
-                      >
-                        <td className="px-4 py-3 font-medium text-slate-900">
-                          {r.cliente.nome}
-                          {r.cliente.status_cadastro === "Cancelado" ? (
-                            <span className="ml-2 text-xs text-rose-600">
-                              (cancelado)
-                            </span>
-                          ) : null}
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">
-                          {r.cliente.ramo}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ${tierStyle[r.tier]}`}
-                          >
-                            {r.tier}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <select
-                            className="input h-9 max-w-60 py-1 text-xs"
-                            value={tid}
-                            onChange={(e) =>
-                              setTemplateFor(r.cliente.id, e.target.value)
-                            }
-                          >
-                            {templates.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.label}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            type="button"
-                            disabled={!wa}
-                            onClick={() => {
-                              if (!wa) return;
-                              const body = applyTemplatePlaceholders(
-                                tpl?.corpo ?? "",
-                                {
-                                  nome: r.cliente.nome,
-                                  vencimento: "",
-                                  ramo: r.cliente.ramo,
-                                  documento: docFmt,
-                                  seguradora: r.cliente.seguradora ?? "",
-                                  classificacao: r.tier,
-                                }
-                              );
-                              window.open(
-                                `https://wa.me/${wa}?text=${encodeURIComponent(body)}`,
-                                "_blank",
-                                "noopener,noreferrer"
-                              );
-                            }}
-                            className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
-                          >
-                            <MessageCircle className="size-3.5" />
-                            WhatsApp
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+          <h3 className="text-sm font-semibold text-slate-800">Tabela resumo</h3>
         </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-200 w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50 text-left text-slate-700">
+                <th className="px-4 py-3 font-semibold">Cliente</th>
+                <th className="px-4 py-3 font-semibold">Ramo</th>
+                <th className="px-4 py-3 font-semibold">Classificação</th>
+                <th className="px-4 py-3 font-semibold">Template</th>
+                <th className="px-4 py-3 text-right font-semibold">Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-6 text-center text-slate-500">Processando resumo operacional...</td>
+                </tr>
+              ) : sortedTable.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-slate-500">Nenhum cliente no filtro.</td>
+                </tr>
+              ) : (
+                sortedTable.map((r) => {
+                  const tid = templateFor(r.cliente.id);
+                  const tpl = templates.find((t) => t.id === tid) ?? templates[0];
+                  const wa = r.cliente.telefone ? digitsToWhatsAppBr(r.cliente.telefone) : null;
+                  const docFmt = formatDocumento(onlyDigits(r.cliente.documento));
+                  return (
+                    <tr key={r.cliente.id} className="border-b border-slate-100 hover:bg-slate-50/80">
+                      <td className="px-4 py-3 font-medium text-slate-900">
+                        {r.cliente.nome}
+                        {r.cliente.status_cadastro === "Cancelado" ? (
+                          <span className="ml-2 text-xs text-rose-600">(cancelado)</span>
+                        ) : null}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{r.cliente.ramo}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ${tierStyle[r.tier]}`}>
+                          {r.tier}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <select
+                          className="input h-9 max-w-60 py-1 text-xs"
+                          value={tid}
+                          onChange={(e) => alterarTemplatePreferido(r.cliente.id, e.target.value)}
+                        >
+                          {templates.map((t) => (
+                            <option key={t.id} value={t.id}>{t.label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          disabled={!wa}
+                          onClick={() => {
+                            if (!wa) return;
+                            const body = applyTemplatePlaceholders(tpl?.corpo ?? "", {
+                              nome: r.cliente.nome,
+                              vencimento: "",
+                              ramo: r.cliente.ramo,
+                              documento: docFmt,
+                              seguradora: r.cliente.seguradora ?? "",
+                              classificacao: r.tier,
+                            });
+                            window.open(
+                              `https://wa.me/${wa}?text=${encodeURIComponent(body)}`,
+                              "_blank",
+                              "noopener,noreferrer"
+                            );
+                          }}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
+                        >
+                          <MessageCircle className="size-3.5" />
+                          WhatsApp
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </PageShell>
   );
 }
