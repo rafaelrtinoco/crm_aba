@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Clientes from "./pages/Clientes";
 import Financeiro from "./pages/Financeiro";
@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import type { AppRoute } from "./routes";
 import { routeTitles } from "./routes";
 import { Menu } from "lucide-react";
-import { supabase } from "./lib/supabaseClient";
+// import { supabase } from "./lib/supabaseClient";
 
 function App() {
   const [route, setRoute] = useState<AppRoute>("login");
