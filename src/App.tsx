@@ -23,21 +23,21 @@ function App() {
     }
   }
 
-  useEffect(() => {
-  async function testarConexao() {
-    const { data, error } = await supabase
-      .from('templates_mensagens')
-      .select('id, label');
+//   useEffect(() => {
+//   async function testarConexao() {
+//     const { data, error } = await supabase
+//       .from('templates_mensagens')
+//       .select('id, label');
     
-    if (error) {
-      console.error("❌ Erro ao conectar no Supabase:", error.message);
-    } else {
-      console.log("🚀 Conexão feita com sucesso! Dados recebidos do banco:", data);
-    }
-  }
+//     if (error) {
+//       console.error("❌ Erro ao conectar no Supabase:", error.message);
+//     } else {
+//       console.log("🚀 Conexão feita com sucesso! Dados recebidos do banco:", data);
+//     }
+//   }
 
-  testarConexao();
-}, []);
+//   testarConexao();
+// }, []);
 
   // 1. Verificamos se estamos na rota de login
   const isLoginPage = route === "login";
