@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Lock, User, ShieldCheck, AlertCircle, UserPlus, X } from "lucide-react";
+import { supabase } from "../lib/supabaseClient"; // Cliente oficial unificado
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -9,38 +10,45 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Estados do Modal
+  // Estados do Modal de Cadastro
   const [newEmail, setNewEmail] = useState("");
   const [newSenha, setNewSenha] = useState("");
   const [confirmSenha, setConfirmSenha] = useState("");
+  const [loadingModal, setLoadingModal] = useState(false);
   const [sucessoCadastro, setSucessoCadastro] = useState(false);
 
-  const STORAGE_KEY = "@AbaSeguros:User";
-
-  // Lógica de Autenticação
-  const handleLogin = (e: React.FormEvent) => {
+  // Lógica de Autenticação com Supabase Cloud
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const storedUser = localStorage.getItem(STORAGE_KEY);
+    setErro("");
+    setLoading(true);
 
-    if (!storedUser) {
-      setErro("Nenhum utilizador registado. Utilize o botão abaixo para criar uma conta.");
+    const { error } = await supabase.auth.signInWithPassword({
+      email: usuario.trim(),
+      password: senha,
+    });
+
+    if (error) {
+      // Tradução amigável dos erros comuns do Supabase
+      if (error.message.includes("Invalid login credentials")) {
+        setErro("E-mail ou palavra-passe incorretos.");
+      } else {
+        setErro(error.message);
+      }
+      setLoading(false);
       return;
     }
 
-    const { email, senha: savedSenha } = JSON.parse(storedUser);
-
-    if (usuario === email && senha === savedSenha) {
-      setErro("");
-      onLoginSuccess(); // Navega para o painel
-    } else {
-      setErro("E-mail ou palavra-passe incorretos.");
-    }
+    setErro("");
+    setLoading(false);
+    onLoginSuccess(); // Navega com segurança para o painel
   };
 
-  // Lógica de Criação no localStorage
-  const handleCreateUser = (e: React.FormEvent) => {
+  // Lógica de Criação de Conta Real no Supabase Auth
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newSenha !== confirmSenha) {
@@ -48,10 +56,21 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       return;
     }
 
-    const userData = { email: newEmail, senha: newSenha };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+    setLoadingModal(true);
+
+    const { error } = await supabase.auth.signUp({
+      email: newEmail.trim(),
+      password: newSenha,
+    });
+
+    if (error) {
+      alert("Erro ao criar conta: " + error.message);
+      setLoadingModal(false);
+      return;
+    }
     
     setSucessoCadastro(true);
+    setLoadingModal(false);
     
     setTimeout(() => {
       setIsModalOpen(false);
@@ -59,17 +78,15 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       setNewEmail("");
       setNewSenha("");
       setConfirmSenha("");
-      // Opcional: preencher automaticamente o campo de login com o novo email
-      setUsuario(newEmail); 
-    }, 2000);
+      setUsuario(newEmail); // Preenche automaticamente o campo de login
+    }, 2500);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">
       <div className="w-full max-w-md relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl animate-in fade-in zoom-in-95 duration-500">
-        <div className="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-sky-500 to-blue-700" />
-
-        <div className="p-8">
+      <div className="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-sky-500 to-blue-700" />
+      <div className="p-8">
           <div className="flex flex-col items-center mb-8">
             <div className="rounded-xl bg-linear-to-br from-sky-500 to-blue-700 p-3 text-white mb-4 shadow-lg shadow-blue-500/20">
               <ShieldCheck className="size-8" />
@@ -89,6 +106,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   placeholder="utilizador@aba.com"
                   value={usuario}
                   onChange={(e) => setUsuario(e.target.value)}
+                  disabled={loading}
                   required
                 />
               </div>
@@ -107,6 +125,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   placeholder="••••••••"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
+                  disabled={loading}
                   required
                 />
               </div>
@@ -119,7 +138,13 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               </div>
             )}
 
-            <button type="submit" className="btn-primary w-full py-3 mt-2">Entrar no Sistema</button>
+            <button 
+              type="submit" 
+              className="btn-primary w-full py-3 mt-2 disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? "Validando credenciais..." : "Entrar no Sistema"}
+            </button>
             
             <div className="relative my-6 text-center">
               <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-200" /></div>
@@ -130,6 +155,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               type="button" 
               onClick={() => setIsModalOpen(true)}
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-slate-600 hover:text-blue-700 transition-colors py-2"
+              disabled={loading}
             >
               <UserPlus size={18} />
               Criar Conta
@@ -138,7 +164,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         </div>
       </div>
 
-      {/* MODAL DE CRIAÇÃO (Email, Senha, Confirmar Senha) */}
+      {/* MODAL DE CRIAÇÃO NO BACKEND AUTH */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4">
@@ -155,24 +181,51 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   <div className="inline-flex items-center justify-center size-12 rounded-full bg-emerald-100 text-emerald-600">
                     <ShieldCheck size={28} />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900">Conta Criada!</h3>
-                  <p className="text-sm text-slate-500">Dados guardados no sistema local.</p>
+                  <h3 className="text-lg font-semibold text-slate-900">Conta Criada com sucesso!</h3>
+                  <p className="text-sm text-slate-500">Verifique a caixa de entrada para confirmar o seu e-mail.</p>
                 </div>
               ) : (
                 <form onSubmit={handleCreateUser} className="space-y-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">E-mail</label>
-                    <input type="email" className="input" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
+                    <input 
+                      type="email" 
+                      className="input" 
+                      value={newEmail} 
+                      onChange={(e) => setNewEmail(e.target.value)} 
+                      disabled={loadingModal}
+                      required 
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Palavra-passe</label>
-                    <input type="password" className="input" value={newSenha} onChange={(e) => setNewSenha(e.target.value)} required />
+                    <input 
+                      type="password" 
+                      className="input" 
+                      value={newSenha} 
+                      onChange={(e) => setNewSenha(e.target.value)} 
+                      disabled={loadingModal}
+                      required 
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Confirmar Palavra-passe</label>
-                    <input type="password" className="input" value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} required />
+                    <input 
+                      type="password" 
+                      className="input" 
+                      value={confirmSenha} 
+                      onChange={(e) => setConfirmSenha(e.target.value)} 
+                      disabled={loadingModal}
+                      required 
+                    />
                   </div>
-                  <button type="submit" className="btn-primary w-full py-3 mt-4">Gravar Utilizador</button>
+                  <button 
+                    type="submit" 
+                    className="btn-primary w-full py-3 mt-4 disabled:opacity-50"
+                    disabled={loadingModal}
+                  >
+                    {loadingModal ? "Registando na nuvem..." : "Gravar Utilizador"}
+                  </button>
                 </form>
               )}
             </div>
