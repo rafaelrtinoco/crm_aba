@@ -4,6 +4,7 @@ import PageShell from "../components/PageShell";
 import { supabase } from "../lib/supabaseClient";
 import { newMarketingTemplateId } from "../lib/mensagensTemplates";
 import { prazoLabels } from "../lib/vencimentoBoleto";
+import NotificationModal from "../components/NotificationModal";
 
 // Types locais alinhados com a estrutura do Supabase
 type TemplatesBoleto = {
@@ -36,6 +37,23 @@ export default function Mensagens() {
   const [novoNome, setNovoNome] = useState("");
   const [novoCorpo, setNovoCorpo] = useState("");
 
+  // Estados para controlar o modal customizado de notificações
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    type: "error" as "error" | "success" | "info",
+    title: "",
+    message: "",
+  });
+
+  // Função auxiliar para disparar as mensagens no modal customizado
+  function dispararModal(
+    type: "error" | "success" | "info",
+    title: string,
+    message: string
+  ) {
+    setModalConfig({ isOpen: true, type, title, message });
+  }
+
   // Carrega todos os templates da nuvem em uma única consulta
   async function carregarTemplates() {
     setLoading(true);
@@ -44,7 +62,11 @@ export default function Mensagens() {
       .select("id, label, corpo, tipo");
 
     if (error) {
-      alert("Erro ao buscar templates: " + error.message);
+      dispararModal(
+        "error", 
+        "Erro de Carregamento", 
+        "Não foi possível recuperar os templates da nuvem: " + error.message
+      );
       setLoading(false);
       return;
     }
@@ -75,12 +97,14 @@ export default function Mensagens() {
     carregarTemplates();
   }, []);
 
-  // Salva e atualiza tudo em lote na nuvem usando .upsert() para evitar problemas de CORS
+  // Salva e atualiza tudo em lote na nuvem usando .upsert()
   async function saveAll() {
     setSaved(true);
 
     // Monta o payload unificado misturando os dois tipos de templates para a mesma tabela
-    const payloadBoleto = (Object.keys(labelsBoleto) as (keyof TemplatesBoleto)[]).map((key) => ({
+    const payloadBoleto = (
+      Object.keys(labelsBoleto) as (keyof TemplatesBoleto)[]
+    ).map((key) => ({
       id: key,
       label: labelsBoleto[key],
       corpo: tBoleto[key],
@@ -101,17 +125,30 @@ export default function Mensagens() {
       .upsert(totalPayload);
 
     if (error) {
-      alert("Erro ao salvar alterações na nuvem: " + error.message);
+      dispararModal(
+        "error", 
+        "Falha ao Atualizar", 
+        "Não foi possível salvar as alterações na nuvem: " + error.message
+      );
       setSaved(false);
     } else {
       carregarTemplates();
+      dispararModal(
+        "success", 
+        "Templates Atualizados!", 
+        "Todos os seus modelos fixos de boletos e templates dinâmicos de marketing foram gravados com sucesso na nuvem."
+      );
       window.setTimeout(() => setSaved(false), 2500);
     }
   }
 
   function addExtra() {
     if (!novoNome.trim() || !novoCorpo.trim()) {
-      alert("Preencha nome e texto do template.");
+      dispararModal(
+        "info", 
+        "Campos Incompletos", 
+        "Por favor, digite um nome identificador e o texto do corpo da mensagem antes de adicionar à listagem."
+      );
       return;
     }
     setExtras((list) => [
@@ -138,9 +175,18 @@ export default function Mensagens() {
       .eq("id", id);
 
     if (error) {
-      alert("Erro ao remover template da nuvem: " + error.message);
+      dispararModal(
+        "error", 
+        "Erro na Remoção", 
+        "Ocorreu um problema ao tentar excluir o template da nuvem: " + error.message
+      );
     } else {
       carregarTemplates();
+      dispararModal(
+        "success", 
+        "Template Excluído", 
+        "O modelo selecionado foi deletado do banco de dados com sucesso."
+      );
     }
   }
 
@@ -169,27 +215,29 @@ export default function Mensagens() {
         </div>
       ) : (
         <>
-          {(Object.keys(labelsBoleto) as (keyof TemplatesBoleto)[]).map((key) => (
-            <div
-              key={key}
-              className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"
-            >
-              <label className="mb-2 block text-sm font-medium text-slate-800">
-                {labelsBoleto[key]}
-                <span className="ml-2 font-normal text-slate-500">
-                  ({prazoLabels[key]})
-                </span>
-              </label>
-              <textarea
-                value={tBoleto[key]}
-                onChange={(e) =>
-                  setTBoleto((prev) => ({ ...prev, [key]: e.target.value }))
-                }
-                rows={4}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-            </div>
-          ))}
+          {(Object.keys(labelsBoleto) as (keyof TemplatesBoleto)[]).map(
+            (key) => (
+              <div
+                key={key}
+                className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"
+              >
+                <label className="mb-2 block text-sm font-medium text-slate-800">
+                  {labelsBoleto[key]}
+                  <span className="ml-2 font-normal text-slate-500">
+                    ({prazoLabels[key]})
+                  </span>
+                </label>
+                <textarea
+                  value={tBoleto[key]}
+                  onChange={(e) =>
+                    setTBoleto((prev) => ({ ...prev, [key]: e.target.value }))
+                  }
+                  rows={4}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                />
+              </div>
+            )
+          )}
 
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-md">
             <h3 className="text-base font-semibold text-slate-900">
@@ -198,14 +246,18 @@ export default function Mensagens() {
             <p className="mt-2 text-sm text-slate-600">
               Aparecem na lista suspensa da aba Marketing. Variáveis:{" "}
               <code className="rounded bg-slate-100 px-1 text-xs">
-                {"{{nome}} {{documento}} {{ramo}} {{seguradora}} {{classificacao}} {{vencimento}}"}
+                {
+                  "{{nome}} {{documento}} {{ramo}} {{seguradora}} {{classificacao}} {{vencimento}}"
+                }
               </code>
               .
             </p>
 
             <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
               {extras.length === 0 ? (
-                <p className="text-sm text-slate-500">Nenhum template extra ainda.</p>
+                <p className="text-sm text-slate-500">
+                  Nenhum template extra ainda.
+                </p>
               ) : (
                 extras.map((ex) => (
                   <div
@@ -218,7 +270,9 @@ export default function Mensagens() {
                         onChange={(e) =>
                           setExtras((list) =>
                             list.map((x) =>
-                              x.id === ex.id ? { ...x, nome: e.target.value } : x
+                              x.id === ex.id
+                                ? { ...x, nome: e.target.value }
+                                : x
                             )
                           )
                         }
@@ -251,7 +305,9 @@ export default function Mensagens() {
             </div>
 
             <div className="mt-4 space-y-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/80 p-4">
-              <p className="text-xs font-medium text-slate-600">Novo template</p>
+              <p className="text-xs font-medium text-slate-600">
+                Novo template
+              </p>
               <input
                 placeholder="Nome (ex.: Retomada pós-cancelamento)"
                 value={novoNome}
@@ -279,13 +335,29 @@ export default function Mensagens() {
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={saveAll} className="btn-save" disabled={loading}>
+        <button
+          type="button"
+          onClick={saveAll}
+          className="btn-save"
+          disabled={loading}
+        >
           {saved ? "Salvando na nuvem..." : "Salvar tudo"}
         </button>
         {saved ? (
-          <span className="text-sm text-emerald-700 animate-pulse">Alterações salvas com sucesso!</span>
+          <span className="text-sm text-emerald-700 animate-pulse">
+            Alterações salvas com sucesso!
+          </span>
         ) : null}
       </div>
+
+      {/* Renderização condicional controlada pelas funções locais */}
+      <NotificationModal
+        isOpen={modalConfig.isOpen}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+      />
     </PageShell>
   );
 }

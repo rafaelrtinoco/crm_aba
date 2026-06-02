@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { BarChart3, TrendingUp, Wallet, Users } from "lucide-react";
 import { supabase } from "../lib/supabaseClient"; // Importação oficial do cliente unificado
 import PageShell from "../components/PageShell";
+import NotificationModal from "../components/NotificationModal";
 
 type BoletoPainel = {
   vencimento: string;
@@ -25,7 +26,7 @@ export default function Painel() {
   // Busca as métricas consolidadas direto da nuvem
   async function carregarMetricasPainel() {
     setLoading(true);
-    
+
     // 1. Busca dados mínimos de cadastro para contagem de clientes
     const { data: dataClientes } = await supabase
       .from("clientes")
@@ -38,13 +39,15 @@ export default function Painel() {
 
     if (dataClientes) {
       setClientesN(dataClientes.length);
-      setAtivosN(dataClientes.filter((x) => x.status_cadastro !== "Cancelado").length);
+      setAtivosN(
+        dataClientes.filter((x) => x.status_cadastro !== "Cancelado").length
+      );
     }
 
     if (dataBoletos) {
       setBoletos(dataBoletos as BoletoPainel[]);
     }
-    
+
     setLoading(false);
   }
 
@@ -90,6 +93,14 @@ export default function Painel() {
       accent: "from-rose-500 to-red-700",
     },
   ];
+
+  // Estados para controlar o modal customizado
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    type: "error" as "error" | "success" | "info",
+    title: "",
+    message: "",
+  });  
 
   return (
     <PageShell
@@ -196,6 +207,14 @@ export default function Painel() {
           </ul>
         </div>
       </div>
+
+      <NotificationModal
+        isOpen={modalConfig.isOpen}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+      />
     </PageShell>
   );
 }

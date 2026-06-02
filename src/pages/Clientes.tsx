@@ -3,7 +3,8 @@ import { RAMOS_SEGURO } from "../data/ramosSeguro";
 import { DOC_MAX_DIGITS, formatDocumento } from "../lib/documentoFormat";
 import Input from "../components/Input";
 import PageShell from "../components/PageShell";
-import { supabase } from "../lib/supabaseClient"; // Certifique-se de que o caminho está correto
+import { supabase } from "../lib/supabaseClient";
+import NotificationModal from "../components/NotificationModal";
 
 type status_cadastro = "Ativo" | "Cancelado";
 
@@ -187,13 +188,21 @@ export default function Clientes() {
   async function salvarCliente(e?: React.MouseEvent | React.FormEvent) {
     if (e) e.preventDefault();
     if (!form.nome || !form.documento) {
-      alert("Preencha Nome e CPF/CNPJ");
+      dispararModal(
+        "error",
+        "Campos obrigatórios",
+        "Por favor, preencha o Nome do cliente e o documento CPF/CNPJ para prosseguir."
+      );
       return;
     }
 
     const docDigits = form.documento.replace(/\D/g, "");
     if (docDigits.length !== 11 && docDigits.length !== 14) {
-      alert("CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos.");
+      dispararModal(
+        "error",
+        "Documento Inválido",
+        "O CPF inserido deve conter exatamente 11 dígitos ou o CNPJ deve conter 14 dígitos (apenas números)."
+      );
       return;
     }
 
@@ -257,7 +266,12 @@ export default function Clientes() {
       ]);
 
       if (error) {
-        alert("Erro ao salvar novo cliente: " + error.message);
+        dispararModal(
+          "error",
+          "Falha de Sincronização",
+          "Não foi possível salvar o cliente no banco de dados na nuvem: " +
+            error.message
+        );
         return;
       }
     }
@@ -305,6 +319,23 @@ export default function Clientes() {
       c.nome.toLowerCase().includes(busca.toLowerCase()) ||
       c.documento.includes(busca)
   );
+
+  // Estados para controlar o modal customizado
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    type: "error" as "error" | "success" | "info",
+    title: "",
+    message: "",
+  });
+
+  // Função auxiliar para disparar o modal facilmente substituindo o alert()
+  function dispararModal(
+    type: "error" | "success" | "info",
+    title: string,
+    message: string
+  ) {
+    setModalConfig({ isOpen: true, type, title, message });
+  }
 
   return (
     <PageShell
@@ -607,6 +638,14 @@ export default function Clientes() {
           </div>
         </div>
       </section>
+
+      <NotificationModal
+        isOpen={modalConfig.isOpen}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+      />
     </PageShell>
   );
 }
