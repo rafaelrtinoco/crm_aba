@@ -43,7 +43,7 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--blue-mid), var(--blue-primary));
+    background: linear-gradient(135deg, var(--blue-dark), var(--blue-primary));
     @apply text-white py-2.5 px-4 rounded-lg font-semibold transition-all duration-200;
   }
 

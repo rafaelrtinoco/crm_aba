@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Lock, User, ShieldCheck, AlertCircle, UserPlus, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient"; // Cliente oficial unificado
+import Logo from "/LOGO-ABA.png"
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -85,11 +86,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">
       <div className="w-full max-w-md relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl animate-in fade-in zoom-in-95 duration-500">
-      <div className="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-sky-500 to-blue-700" />
+      <div className="absolute inset-x-0 top-0 h-1.5 bg-[#001f3D]" />
       <div className="p-8">
           <div className="flex flex-col items-center mb-8">
-            <div className="rounded-xl bg-linear-to-br from-sky-500 to-blue-700 p-3 text-white mb-4 shadow-lg shadow-blue-500/20">
-              <ShieldCheck className="size-8" />
+            <div className="rounded-xl bg-linear-to-br p-3 text-white mb-4 shadow-lg shadow-blue-500/20">
+              <img src={Logo} alt="Logo Aba Seguros" className="w-12 h-12 object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight text-center">Aba Seguros</h1>
             <p className="text-sm text-slate-500 mt-1">Gestão de Clientes e Seguros</p>
@@ -115,7 +116,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             <div className="space-y-1.5">
               <div className="flex justify-between items-center px-1">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Palavra-passe</label>
-                <a href="#" className="text-xs font-medium text-sky-600 hover:text-blue-700">Esqueci-me da senha</a>
+                <a href="#" className="text-xs font-medium text-blue-primary hover:text-blue-700">Esqueci-me da senha</a>
               </div>
               <div className="relative group">
                 <Lock className="absolute left-3 top-2.5 size-4.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
