@@ -1,6 +1,6 @@
 // src/pages/Financeiro.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, FileSpreadsheet, MessageCircle, Upload } from "lucide-react";
+import { Download, MessageCircle, Upload } from "lucide-react";
 import PageShell from "../components/PageShell";
 import { supabase } from "../lib/supabaseClient";
 import NotificationModal from "../components/NotificationModal";

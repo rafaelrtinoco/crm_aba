@@ -7,7 +7,7 @@ import { RAMOS_SEGURO } from "../data/ramosSeguro";
 import Input from "../components/Input";
 import PageShell from "../components/PageShell";
 import NotificationModal from "../components/NotificationModal";
-import type { Cliente, Apolice, StatusCadastro, TipoCliente, StatusApolice } from "../types";
+import type { Cliente, Apolice, StatusApolice } from "../types";
 
 const FONE_MAX_DIGITS = 11;
 

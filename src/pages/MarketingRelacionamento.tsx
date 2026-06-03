@@ -4,7 +4,7 @@ import { MessageCircle, Send } from "lucide-react";
 import PageShell from "../components/PageShell";
 import { supabase } from "../lib/supabaseClient";
 import { applyTemplatePlaceholders, digitsToWhatsAppBr } from "../lib/mensagensTemplates";
-import { todayIsoBr } from "../lib/vencimentoBoleto";
+// import { todayIsoBr } from "../lib/vencimentoBoleto";
 import NotificationModal from "../components/NotificationModal";
 import type { Cliente, Apolice, Boleto, Template, TierCliente, ClienteRankingRow } from "../types";
 
@@ -303,7 +303,7 @@ export default function MarketingRelacionamento() {
 
       {/* Kanban */}
       <div className="overflow-x-auto pb-2">
-        <div className="flex min-w-[900px] gap-3">
+        <div className="flex min-w-225 gap-3">
           {loading ? (
             <p className="p-6 text-sm text-slate-500 animate-pulse">Carregando classificação...</p>
           ) : (

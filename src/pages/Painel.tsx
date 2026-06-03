@@ -123,7 +123,7 @@ export default function Painel() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {kpis.map(({ label, value, sub, icon: Icon, accent }) => (
           <div key={label} className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`} />
+            <div className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${accent}`} />
             <div className="p-5 pt-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -131,7 +131,7 @@ export default function Painel() {
                   <p className="mt-2 text-3xl font-bold tabular-nums tracking-tight text-slate-900">{value}</p>
                   <p className="mt-1 text-xs text-slate-500">{sub}</p>
                 </div>
-                <div className={`rounded-xl bg-gradient-to-br p-3 text-white ${accent}`}>
+                <div className={`rounded-xl bg-linear-to-br p-3 text-white ${accent}`}>
                   <Icon className="size-5" strokeWidth={2} />
                 </div>
               </div>
