@@ -152,8 +152,12 @@ export default function Financeiro() {
 
     if (editandoId) {
       const anterior = boletos.find((b) => b.id === editandoId);
-      const { error } = await supabase.from("boletos").update({ ...payload, status: anterior?.status ?? "Pendente" }).eq("id", editandoId);
-      if (error) { modal("error", "Erro", error.message); return; }
+      const { error } = await supabase.from("boletos").upsert({
+        id: editandoId,
+        ...payload,
+        status: anterior?.status ?? "Pendente",
+      });
+      if (error) { modal("error", "Erro ao atualizar boleto", error.message); return; }
       setEditandoId(null);
     } else {
       const { error } = await supabase.from("boletos").insert([{ id: Date.now(), ...payload }]);
@@ -194,8 +198,17 @@ export default function Financeiro() {
   }
 
   async function setBoletoStatus(id: number, status: StatusBoleto) {
-    const { error } = await supabase.from("boletos").update({ status }).eq("id", id);
-    if (error) { modal("error", "Erro", error.message); return; }
+    const atual = boletos.find((b) => b.id === id);
+    if (!atual) return;
+    const { error } = await supabase.from("boletos").upsert({
+      id,
+      apolice_id:  atual.apolice_id,
+      vencimento:  atual.vencimento,
+      valor:       atual.valor,
+      status,
+      observacoes: atual.observacoes,
+    });
+    if (error) { modal("error", "Erro ao alterar status", error.message); return; }
     setBoletos((list) => list.map((b) => (b.id === id ? { ...b, status } : b)));
   }
 
